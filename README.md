@@ -6,6 +6,16 @@
 
 10 个回合，每个都是似曾相识的争议场景。越位线画在哪儿、滑铲先碰到球还是先碰到人、那个球到底是打在肩膀还是手臂上——你以为是常识的东西，在倒计时压力下会变得没那么确定。判完之后，球迷弹幕会飘过屏幕，教练会拍桌子，媒体会起标题，和你每个周末看到的一模一样。
 
+## 直接开玩
+
+点击下面的链接，在浏览器里直接就能玩，不用下载任何东西：
+
+### [https://kun0808.github.io/VAR-Simulator/](https://kun0808.github.io/VAR-Simulator/)
+
+把这个链接丢给球友群，看谁才是真正的懂球帝。
+
+> 上面的链接需要开启 GitHub Pages 才能访问。开启方法：打开仓库页面 → Settings → Pages → Source 选择 `main` 分支 → Save。等一两分钟后链接就会生效。如果暂时不想开启，也可以用这个免设置的预览链接：[https://htmlpreview.github.io/?https://github.com/Kun0808/VAR-Simulator/blob/main/var-simulator.html](https://htmlpreview.github.io/?https://github.com/Kun0808/VAR-Simulator/blob/main/var-simulator.html)
+
 ## 玩法
 
 游戏共 10 个回合，每回合展示一个用 Canvas 实时绘制的 2D 足球争议场景——越位线、滑铲碰撞、手球高亮、传球路线都会在画面上呈现。你需要在 8 秒倒计时结束前，从四个选项中做出判罚：
