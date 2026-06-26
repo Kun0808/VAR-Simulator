@@ -136,6 +136,8 @@ python3 -m http.server 8000
 
 适配桌面和手机浏览器，响应式布局在小屏幕上自动调整为两列按钮和两列数值面板。Canvas 画面按宽度等比缩放。
 
+Play online with GitHub Pages.
+
 ## License
 
 MIT — 随便用，但请保持非商业用途，也别换成真实球队名字去蹭热度。
