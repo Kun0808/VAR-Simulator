@@ -12,9 +12,6 @@
 
 ### [https://kun0808.github.io/VAR-Simulator/](https://kun0808.github.io/VAR-Simulator/)
 
-把这个链接丢给球友群，看谁才是真正的懂球帝。
-
-> 上面的链接需要开启 GitHub Pages 才能访问。开启方法：打开仓库页面 → Settings → Pages → Source 选择 `main` 分支 → Save。等一两分钟后链接就会生效。如果暂时不想开启，也可以用这个免设置的预览链接：[https://htmlpreview.github.io/?https://github.com/Kun0808/VAR-Simulator/blob/main/var-simulator.html](https://htmlpreview.github.io/?https://github.com/Kun0808/VAR-Simulator/blob/main/var-simulator.html)
 
 ## 玩法
 
