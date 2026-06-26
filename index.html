@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>VAR Simulator：裁判压力室</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== 开始页 ===== -->
+  <section id="startScreen" class="screen">
+    <div class="logo-badge">VAR · OFFICIAL ROOM</div>
+    <h1 class="title-main">VAR Simulator<br>裁判压力室</h1>
+    <p class="title-sub">你 不是 球员，你是 拍板的那个人</p>
+    <div class="intro-card">
+      <div class="row"><span>▸</span><span>共 <b>10 个回合</b>，每回合一个足球争议画面。</span></div>
+      <div class="row"><span>▸</span><span>你有 <b>8 秒</b>做出判罚，超时算错。</span></div>
+      <div class="row"><span>▸</span><span>四个选项：<b>进球有效 / 越位 / 犯规 / 手球</b>。</span></div>
+      <div class="row"><span>▸</span><span>盯紧你的 <b>压力值</b> 和 <b>争议值</b>，别被热搜淹没。</span></div>
+      <div class="row"><span>▸</span><span>看完回放、读完规则，再按下那个决定命运的按钮。</span></div>
+    </div>
+    <button class="btn-primary" id="startBtn">进入 VAR 房间</button>
+  </section>
+
+  <!-- ===== 游戏页 ===== -->
+  <section id="gameScreen" class="screen" hidden>
+    <div class="topbar">
+      <span class="brand">VAR · 裁判压力室</span>
+      <span class="round-pill" id="roundPill">第 1 / 10 回合</span>
+      <span class="timer" id="timer">8.0</span>
+    </div>
+
+    <div class="monitor">
+      <div class="monitor-bar">
+        <span>VIDEO ASSISTANT REFEREE · LIVE</span>
+        <span class="rec">REC</span>
+      </div>
+      <canvas id="pitch" width="640" height="400"></canvas>
+      <div class="flash" id="flash"></div>
+      <div class="danmaku" id="danmaku"></div>
+    </div>
+
+    <div class="legend">
+      <span><i style="background:#ff5252"></i>进攻球员</span>
+      <span><i style="background:#3aa0ff"></i>防守球员</span>
+      <span><i style="background:#ffc83a"></i>守门员</span>
+      <span><i style="background:#fff;border:1px solid #333"></i>足球</span>
+    </div>
+
+    <div class="event-desc" id="eventDesc">
+      <span class="ev-title" id="evTitle"></span>
+      <span id="evText"></span>
+    </div>
+
+    <div class="choices" id="choices">
+      <button class="choice" data-choice="进球有效">进球有效</button>
+      <button class="choice" data-choice="越位">越位</button>
+      <button class="choice" data-choice="犯规">犯规</button>
+      <button class="choice" data-choice="手球">手球</button>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="stats">
+      <div class="stat right"><div class="num" id="stCorrect">0</div><div class="lab">正确判罚</div></div>
+      <div class="stat acc"><div class="num" id="stAcc">0%</div><div class="lab">准确率</div></div>
+      <div class="stat press"><div class="num" id="stPress">0</div><div class="lab">压力值</div><div class="bar"><i id="pressBar"></i></div></div>
+      <div class="stat cont"><div class="num" id="stCont">0</div><div class="lab">争议值</div><div class="bar"><i id="contBar"></i></div></div>
+    </div>
+  </section>
+
+  <!-- ===== 结束页 ===== -->
+  <section id="endScreen" class="screen" hidden>
+    <div class="logo-badge">FINAL REPORT</div>
+    <h2 class="title-main" style="font-size:26px;">裁判考核报告</h2>
+    <div class="end-rating" id="endRating"></div>
+    <p class="end-summary" id="endSummary"></p>
+    <div class="end-grid">
+      <div class="end-card"><div class="v" id="endCorrect" style="color:var(--accent-2)">0</div><div class="k">正确判罚数</div></div>
+      <div class="end-card"><div class="v" id="endAcc" style="color:var(--defender)">0%</div><div class="k">准确率</div></div>
+      <div class="end-card"><div class="v" id="endPress" style="color:var(--danger)">0</div><div class="k">最终压力值</div></div>
+      <div class="end-card"><div class="v" id="endCont" style="color:var(--accent)">0</div><div class="k">最终争议值</div></div>
+    </div>
+    <button class="btn-primary" id="restartBtn" style="margin-top:28px;">再来一局</button>
+  </section>
+
+</div>
+
+<!-- 游戏脚本：先加载数据，再加载逻辑 -->
+<script src="js/data.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

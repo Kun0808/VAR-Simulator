@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>VAR Simulator：裁判压力室</title>
+<style>
+  /* ===== 基础重置与变量 ===== */
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #0e1320;
+    --panel: #161d2e;
+    --panel-2: #1f2840;
+    --line: #2c3656;
+    --accent: #ffce3a;
+    --accent-2: #36d07a;
+    --danger: #ff4d5e;
+    --text: #e8ecf5;
+    --muted: #8a93ad;
+    --attacker: #ff5252;
+    --defender: #3aa0ff;
+    --keeper: #ffc83a;
+  }
+  html, body {
+    height: 100%;
+    background: radial-gradient(circle at 50% 0%, #1a2238 0%, var(--bg) 60%);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  #app {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 14px 14px 28px;
+    min-height: 100%;
+  }
+
+  /* ===== 开始页 ===== */
+  .screen { animation: fade .4s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  #startScreen { text-align: center; padding: 40px 12px; }
+  .logo-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border: 1px solid var(--line);
+    border-radius: 30px;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    background: rgba(255,206,58,.08);
+    margin-bottom: 18px;
+  }
+  .title-main {
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    line-height: 1.2;
+    background: linear-gradient(135deg, #fff, var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .title-sub { font-size: 16px; color: var(--muted); margin-top: 8px; }
+  .intro-card {
+    margin: 26px auto 0;
+    max-width: 480px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: left;
+    font-size: 14px;
+    line-height: 1.9;
+    color: #c4ccdf;
+  }
+  .intro-card b { color: var(--accent); }
+  .intro-card .row { display: flex; gap: 10px; align-items: flex-start; }
+  .intro-card .row span:first-child { color: var(--accent-2); font-weight: 700; min-width: 22px; }
+
+  /* ===== 按钮 ===== */
+  .btn-primary {
+    margin-top: 26px;
+    display: inline-block;
+    padding: 15px 46px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #10200f;
+    background: linear-gradient(135deg, var(--accent-2), #2bb86a);
+    border: none;
+    border-radius: 40px;
+    cursor: pointer;
+    box-shadow: 0 10px 26px rgba(54,208,122,.32);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .btn-primary:active { transform: scale(.96); }
+  .btn-ghost {
+    padding: 12px 30px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 30px;
+    cursor: pointer;
+    transition: transform .15s;
+  }
+  .btn-ghost:active { transform: scale(.96); }
+
+  /* ===== 顶部信息条 ===== */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .topbar .brand {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  .round-pill {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 6px 14px;
+    border-radius: 20px;
+  }
+  .timer {
+    font-family: "SF Mono", "Roboto Mono", monospace;
+    font-size: 22px;
+    font-weight: 800;
+    min-width: 62px;
+    text-align: center;
+    padding: 4px 10px;
+    border-radius: 10px;
+    background: rgba(54,208,122,.12);
+    color: var(--accent-2);
+    border: 1px solid rgba(54,208,122,.3);
+    transition: all .2s;
+  }
+  .timer.warn { background: rgba(255,77,94,.15); color: var(--danger); border-color: rgba(255,77,94,.4); animation: blink .5s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .45; } }
+
+  /* ===== VAR 监视器 ===== */
+  .monitor {
+    position: relative;
+    background: #07140b;
+    border: 2px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(0,0,0,.4);
+  }
+  .monitor-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 12px;
+    background: #0c1424;
+    border-bottom: 1px solid var(--line);
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--muted);
+  }
+  .monitor-bar .rec { color: var(--danger); font-weight: 700; }
+  .monitor-bar .rec::before { content: "● "; animation: blink 1s steps(2) infinite; }
+  canvas#pitch { display: block; width: 100%; height: auto; background: #2d8a3e; }
+  .flash {
+    position: absolute; inset: 0;
+    background: transparent; pointer-events: none;
+    transition: background .12s;
+  }
+  .flash.green { background: rgba(54,208,122,.32); animation: flashout .6s ease forwards; }
+  .flash.red { background: rgba(255,77,94,.34); animation: flashout .6s ease forwards; }
+  @keyframes flashout { 0%{opacity:1;} 100%{opacity:0;} }
+
+  /* 弹幕层 */
+  .danmaku {
+    position: absolute; inset: 0;
+    overflow: hidden; pointer-events: none;
+  }
+  .danmaku span {
+    position: absolute;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,.8);
+    right: -40%;
+    animation: dmk linear forwards;
+  }
+  @keyframes dmk { from { transform: translateX(0); } to { transform: translateX(-150vw); } }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 6px 14px;
+    justify-content: center;
+    margin: 10px 2px 4px;
+    font-size: 11px; color: var(--muted);
+  }
+  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+
+  /* ===== 事件描述 ===== */
+  .event-desc {
+    margin: 12px 2px 0;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #d6dcec;
+  }
+  .event-desc .ev-title { display:block; color: var(--accent); font-weight: 700; margin-bottom: 4px; font-size: 13px; }
+
+  /* ===== 判罚按钮 ===== */
+  .choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 14px 0 6px;
+  }
+  .choice {
+    padding: 15px 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform .12s, border-color .12s, background .12s;
+  }
+  .choice:active { transform: scale(.97); }
+  .choice:hover:not(:disabled) { border-color: var(--accent); background: #263150; }
+  .choice:disabled { opacity: .45; cursor: not-allowed; }
+  .choice.correct-pick { background: rgba(54,208,122,.2); border-color: var(--accent-2); color: #8ff0b8; }
+  .choice.wrong-pick { background: rgba(255,77,94,.2); border-color: var(--danger); color: #ffb3bc; }
+
+  /* ===== 反馈区 ===== */
+  .feedback {
+    margin-top: 12px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 13.5px;
+    line-height: 1.7;
+    display: none;
+  }
+  .feedback.show { display: block; animation: fade .35s ease; }
+  .fb-verdict { font-size: 17px; font-weight: 800; margin-bottom: 8px; }
+  .fb-verdict.ok { color: var(--accent-2); }
+  .fb-verdict.no { color: var(--danger); }
+  .fb-block { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
+  .fb-block .lbl { color: var(--accent); font-weight: 700; margin-right: 4px; }
+  .next-btn {
+    margin-top: 14px;
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #10200f;
+    background: linear-gradient(135deg, var(--accent), #f0a800);
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: transform .12s;
+  }
+  .next-btn:active { transform: scale(.98); }
+
+  /* ===== 数值面板 ===== */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .stat {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 9px 6px;
+    text-align: center;
+  }
+  .stat .num { font-size: 19px; font-weight: 800; font-family: "SF Mono", monospace; }
+  .stat .lab { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+  .stat.press .num { color: var(--danger); }
+  .stat.cont .num { color: var(--accent); }
+  .stat.right .num { color: var(--accent-2); }
+  .stat.acc .num { color: var(--defender); }
+  .bar { height: 4px; border-radius: 3px; background: var(--line); margin-top: 5px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 0; transition: width .5s ease; }
+  .stat.press .bar > i { background: var(--danger); }
+  .stat.cont .bar > i { background: var(--accent); }
+
+  /* ===== 结束页 ===== */
+  #endScreen { text-align: center; padding: 30px 6px; }
+  .end-rating {
+    font-size: 26px; font-weight: 800; margin: 14px 0 4px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .end-summary { color: #c4ccdf; font-size: 15px; line-height: 1.7; margin: 10px auto 0; max-width: 440px; }
+  .end-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin: 22px auto 0; max-width: 440px;
+  }
+  .end-card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px 10px; text-align: center;
+  }
+  .end-card .v { font-size: 28px; font-weight: 800; font-family: "SF Mono", monospace; }
+  .end-card .k { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  @media (max-width: 380px) {
+    .title-main { font-size: 28px; }
+    .choice { font-size: 14px; padding: 13px 6px; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== 开始页 ===== -->
+  <section id="startScreen" class="screen">
+    <div class="logo-badge">VAR · OFFICIAL ROOM</div>
+    <h1 class="title-main">VAR Simulator<br>裁判压力室</h1>
+    <p class="title-sub">你 不是 球员，你是 拍板的那个人</p>
+    <div class="intro-card">
+      <div class="row"><span>▸</span><span>共 <b>10 个回合</b>，每回合一个足球争议画面。</span></div>
+      <div class="row"><span>▸</span><span>你有 <b>8 秒</b>做出判罚，超时算错。</span></div>
+      <div class="row"><span>▸</span><span>四个选项：<b>进球有效 / 越位 / 犯规 / 手球</b>。</span></div>
+      <div class="row"><span>▸</span><span>盯紧你的 <b>压力值</b> 和 <b>争议值</b>，别被热搜淹没。</span></div>
+      <div class="row"><span>▸</span><span>看完回放、读完规则，再按下那个决定命运的按钮。</span></div>
+    </div>
+    <button class="btn-primary" id="startBtn">进入 VAR 房间</button>
+  </section>
+
+  <!-- ===== 游戏页 ===== -->
+  <section id="gameScreen" class="screen" hidden>
+    <div class="topbar">
+      <span class="brand">VAR · 裁判压力室</span>
+      <span class="round-pill" id="roundPill">第 1 / 10 回合</span>
+      <span class="timer" id="timer">8.0</span>
+    </div>
+
+    <div class="monitor">
+      <div class="monitor-bar">
+        <span>VIDEO ASSISTANT REFEREE · LIVE</span>
+        <span class="rec">REC</span>
+      </div>
+      <canvas id="pitch" width="640" height="400"></canvas>
+      <div class="flash" id="flash"></div>
+      <div class="danmaku" id="danmaku"></div>
+    </div>
+
+    <div class="legend">
+      <span><i style="background:#ff5252"></i>进攻球员</span>
+      <span><i style="background:#3aa0ff"></i>防守球员</span>
+      <span><i style="background:#ffc83a"></i>守门员</span>
+      <span><i style="background:#fff;border:1px solid #333"></i>足球</span>
+    </div>
+
+    <div class="event-desc" id="eventDesc">
+      <span class="ev-title" id="evTitle"></span>
+      <span id="evText"></span>
+    </div>
+
+    <div class="choices" id="choices">
+      <button class="choice" data-choice="进球有效">进球有效</button>
+      <button class="choice" data-choice="越位">越位</button>
+      <button class="choice" data-choice="犯规">犯规</button>
+      <button class="choice" data-choice="手球">手球</button>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="stats">
+      <div class="stat right"><div class="num" id="stCorrect">0</div><div class="lab">正确判罚</div></div>
+      <div class="stat acc"><div class="num" id="stAcc">0%</div><div class="lab">准确率</div></div>
+      <div class="stat press"><div class="num" id="stPress">0</div><div class="lab">压力值</div><div class="bar"><i id="pressBar"></i></div></div>
+      <div class="stat cont"><div class="num" id="stCont">0</div><div class="lab">争议值</div><div class="bar"><i id="contBar"></i></div></div>
+    </div>
+  </section>
+
+  <!-- ===== 结束页 ===== -->
+  <section id="endScreen" class="screen" hidden>
+    <div class="logo-badge">FINAL REPORT</div>
+    <h2 class="title-main" style="font-size:26px;">裁判考核报告</h2>
+    <div class="end-rating" id="endRating"></div>
+    <p class="end-summary" id="endSummary"></p>
+    <div class="end-grid">
+      <div class="end-card"><div class="v" id="endCorrect" style="color:var(--accent-2)">0</div><div class="k">正确判罚数</div></div>
+      <div class="end-card"><div class="v" id="endAcc" style="color:var(--defender)">0%</div><div class="k">准确率</div></div>
+      <div class="end-card"><div class="v" id="endPress" style="color:var(--danger)">0</div><div class="k">最终压力值</div></div>
+      <div class="end-card"><div class="v" id="endCont" style="color:var(--accent)">0</div><div class="k">最终争议值</div></div>
+    </div>
+    <button class="btn-primary" id="restartBtn" style="margin-top:28px;">再来一局</button>
+  </section>
+
+</div>
+
+<script>
+/* =========================================================
+   VAR Simulator：裁判压力室
+   所有回合数据集中在 events 数组中，方便修改。
+   每个 event 包含事件文本与 scene 绘制配置。
+   ========================================================= */
+
+// ---------- 回合数据（10 个） ----------
+const events = [
+  {
+    id: 1,
+    title: "直塞破门的诱惑",
+    description: "前锋接到中场直塞后单刀破门，边裁没有举旗，全场欢呼。但他启动时，明显比最后一名防守球员更靠近球门。",
+    correctAnswer: "越位",
+    explanation: "越位规则：队友传球的瞬间，若进攻球员比倒数第二名防守球员更靠近球门线，即处于越位位置并参与进攻，应判越位，进球无效。",
+    crowdReaction: "球迷：\"这都越位了？我奶奶站这儿都看出来！\"",
+    coachReaction: "防守方教练疯狂鼓掌：\"VAR 终于干了件人事！\"",
+    mediaHeadline: "《越位半条街，VAR 毫不留情》",
+    controversyImpact: 2,
+    scene: {
+      offsideLine: 340,
+      ball: { x1: 250, y1: 265, x2: 430, y2: 210 },
+      attacker: { x1: 420, y1: 205, x2: 565, y2: 200 },
+      players: [
+        { type: "def", x: 340, y: 195 },
+        { type: "def", x: 340, y: 270 },
+        { type: "att", x: 235, y: 270 },
+        { type: "gk", x: 612, y: 200 }
+      ]
+    }
+  },
+  {
+    id: 2,
+    title: "先脚后球的滑铲",
+    description: "防守球员飞身滑铲，先重重踢到进攻球员的支撑脚，皮球才弹出。进攻球员痛苦倒地。",
+    correctAnswer: "犯规",
+    explanation: "判罚关键在接触顺序：先踢到人后碰到球，属危险动作，应判犯规，禁区内判点球。",
+    crowdReaction: "球迷：\"那脚铲得比我上班打卡还准时！\"",
+    coachReaction: "丢球方教练拍桌：\"这要是红牌我都认！\"",
+    mediaHeadline: "《铲球先到脚，裁判没得选》",
+    controversyImpact: 3,
+    scene: {
+      collision: { x: 432, y: 203, at: 0.5, kind: "foul" },
+      ball: { x1: 360, y1: 198, x2: 430, y2: 202 },
+      attacker: { x1: 360, y1: 205, x2: 438, y2: 208 },
+      players: [
+        { type: "def", x: 470, y: 205, slideTo: { x: 436, y: 206 } },
+        { type: "def", x: 340, y: 250 },
+        { type: "gk", x: 612, y: 200 }
+      ]
+    }
+  },
+  {
+    id: 3,
+    title: "张开的手臂",
+    description: "禁区内混战，防守球员手臂高高张开，像在指挥交通。足球结结实实打在他的手臂上。",
+    correctAnswer: "手球",
+    explanation: "手臂离开身体自然范围、不自然扩大防守面积，球打手即判手球，禁区内判点球。",
+    crowdReaction: "球迷：\"他是在守门，还是在拦出租车？\"",
+    coachReaction: "防守方教练捂脸：\"能不能把手放口袋里踢球？\"",
+    mediaHeadline: "《手臂比球门还宽，点球没商量》",
+    controversyImpact: 8,
+    scene: {
+      highlight: { x: 548, y: 184, label: "手臂" },
+      ball: { x1: 400, y1: 200, x2: 545, y2: 195 },
+      attacker: { x1: 395, y1: 205, x2: 430, y2: 205 },
+      players: [
+        { type: "def", x: 560, y: 205 },
+        { type: "def", x: 500, y: 250 },
+        { type: "gk", x: 612, y: 200 }
+      ]
+    }
+  },
+  {
+    id: 4,
+    title: "毫厘之间的平行",
+    description: "前锋接球时与最后一名防守球员几乎完全平行，随后冷静推射破门。全场屏住呼吸等待 VAR。",
+    correctAnswer: "进球有效",
+    explanation: "平行即不越位。进攻球员与倒数第二名防守球员处于同一水平线时不构成越位，进球有效。",
+    crowdReaction: "球迷：\"这平行线画得比我人生规划还准！\"",
+    coachReaction: "进攻方教练竖大拇指：\"VAR 这次眼神不错。\"",
+    mediaHeadline: "《平行就是平行，毫米级也认》",
+    controversyImpact: 5,
+    scene: {
+      offsideLine: 360,
+      ball: { x1: 270, y1: 250, x2: 365, y2: 205 },
+      attacker: { x1: 360, y1: 205, x2: 590, y2: 200 },
+      players: [
+        { type: "def", x: 360, y: 200 },
+        { type: "def", x: 360, y: 280 },
+        { type: "att", x: 255, y: 250 },
+        { type: "gk", x: 612, y: 200 }
+      ]
+    }
+  },
+  {
+    id: 5,
+    title: "撞翻守门员",
+    description: "守门员已经双手将球抱住，进攻球员却全速冲来将其撞翻，球脱手滚入网中。",
+    correctAnswer: "犯规",
+    explanation: "守门员控球时受规则保护，冲撞已控球的守门员属犯规，进球无效并判犯规。",
+    crowdReaction: "球迷：\"他是来踢球，还是来相扑的？\"",
+    coachReaction: "门将教练怒吼：\"我家门将差点飞出球场！\"",
+    mediaHeadline: "《门将变道具，进球被吹》",
+    controversyImpact: 4,
+    scene: {
+      collision: { x: 602, y: 200, at: 0.55, kind: "foul" },
+      ball: { x1: 460, y1: 195, x2: 612, y2: 195 },
+      attacker: { x1: 460, y1: 205, x2: 600, y2: 205 },
+      players: [
+        { type: "gk", x: 612, y: 200 },
+        { type: "def", x: 490, y: 230 }
+      ]
+    }
+  },
+  {
+    id: 6,
+    title: "回传失误的礼物",
+    description: "前锋原本站在越位位置，但防守球员主动回传失误，球直接送到前锋脚下，他笑纳大礼破门。",
+    correctAnswer: "进球有效",
+    explanation: "若防守球员主动触球（回传或解围失误）将球送到越位位置的进攻球员脚下，不构成越位犯规，进球有效。",
+    crowdReaction: "球迷：\"这助攻比我们前锋还到位！\"",
+    coachReaction: "防守方教练瘫坐：\"这锅我得背到退休。\"",
+    mediaHeadline: "《自家回传送礼，VAR 也不背锅》",
+    controversyImpact: 10,
+    scene: {
+      offsideLine: 400,
+      ball: { x1: 402, y1: 198, x2: 450, y2: 202 },
+      attacker: { x1: 450, y1: 205, x2: 590, y2: 200 },
+      players: [
+        { type: "def", x: 400, y: 205 },
+        { type: "def", x: 380, y: 260 },
+        { type: "att", x: 300, y: 250 },
+        { type: "gk", x: 612, y: 200 }
+      ]
+    }
+  },
+  {
+    id: 7,
+    title: "肩膀不是手",
+    description: "一脚射门击中防守球员肩膀后变线弹入球门，防守方疯狂投诉手球，要求吹掉进球。",
+    correctAnswer: "进球有效",
+    explanation: "肩膀属合法触球部位，肩部以下手臂才判手球。击中肩膀不构成手球，进球有效。",
+    crowdReaction: "球迷：\"肩膀肩膀，又不是手肘！\"",
+    coachReaction: "防守方教练摊手：\"下次我让球员用脸挡？\"",
+    mediaHeadline: "《肩膀清白，进球成立》",
+    controversyImpact: 6,
+    scene: {
+      highlight: { x: 558, y: 188, label: "肩膀" },
+      ball: { x1: 400, y1: 200, x2: 612, y2: 198 },
+      attacker: { x1: 395, y1: 205, x2: 430, y2: 205 },
+      players: [
+        { type: "def", x: 560, y: 205 },
+        { type: "gk", x: 612, y: 200 }
+      ]
+    }
+  },
+  {
+    id: 8,
+    title: "干净利落的滑铲",
+    description: "防守球员一记干净滑铲先碰到球，球弹到另一名进攻球员脚下破门，丢球方围住裁判投诉犯规。",
+    correctAnswer: "进球有效",
+    explanation: "先触球且动作合理的滑铲属合法防守，不构成犯规，随后产生的进球有效。",
+    crowdReaction: "球迷：\"这铲得比扫地机器人还干净！\"",
+    coachReaction: "丢球方教练跺脚：\"铲到球就不算犯规？我不服！\"",
+    mediaHeadline: "《先碰球的铲球，VAR 摆手放过》",
+    controversyImpact: 4,
+    scene: {
+      collision: { x: 434, y: 203, at: 0.45, kind: "clean" },
+      ball: { x1: 380, y1: 198, x2: 600, y2: 200 },
+      attacker: { x1: 380, y1: 205, x2: 430, y2: 208 },
+      players: [
+        { type: "def", x: 475, y: 205, slideTo: { x: 438, y: 206 } },
+        { type: "att", x: 300, y: 250 },
+        { type: "gk", x: 612, y: 200 }
+      ]
+    }
+  },
+  {
+    id: 9,
+    title: "头球前的暗手",
+    description: "角球开出，进攻球员在起跳头球前，明显伸手推开防守球员，随后头球破门。",
+    correctAnswer: "犯规",
+    explanation: "头球前用手推搡防守球员属犯规，进球无效，判防守方任意球。",
+    crowdReaction: "球迷：\"那一推比我挤早高峰还用力！\"",
+    coachReaction: "防守方教练模仿推人动作：\"看到没？这是柔道！\"",
+    mediaHeadline: "《先推后顶，进球泡汤》",
+    controversyImpact: 3,
+    scene: {
+      collision: { x: 442, y: 188, at: 0.5, kind: "push" },
+      highlight: { x: 444, y: 188, label: "推手" },
+      ball: { x1: 250, y1: 80, x2: 452, y2: 184 },
+      attacker: { x1: 420, y1: 205, x2: 452, y2: 182 },
+      players: [
+        { type: "def", x: 470, y: 205 },
+        { type: "def", x: 430, y: 245 },
+        { type: "gk", x: 612, y: 200 }
+      ]
+    }
+  },
+  {
+    id: 10,
+    title: "防线身后的单刀",
+    description: "进攻球员在防线身后接到队友过顶长传，单刀面对门将推射破门，越位线清晰可见。",
+    correctAnswer: "越位",
+    explanation: "传球瞬间进攻球员处于倒数第二名防守球员身前（更靠近球门），接球即越位，进球无效。",
+    crowdReaction: "球迷：\"这越位线画得比斑马线还清楚！\"",
+    coachReaction: "防守方教练点头：\"这次没什么可吵的。\"",
+    mediaHeadline: "《单刀变空欢，越位线说了算》",
+    controversyImpact: 2,
+    scene: {
+      offsideLine: 380,
+      ball: { x1: 300, y1: 230, x2: 480, y2: 200 },
+      attacker: { x1: 470, y1: 205, x2: 590, y2: 200 },
+      players: [
+        { type: "def", x: 380, y: 180 },
+        { type: "def", x: 380, y: 270 },
+        { type: "att", x: 290, y: 235 },
+        { type: "gk", x: 612, y: 200 }
+      ]
+    }
+  }
+];
+
+// ---------- 通用弹幕池（回合中随机飘过） ----------
+const danmakuPool = [
+  "VAR 又来了！", "这都看不出来？", "裁判去看屏幕！",
+  "我奶奶都看出来越位了！", "这球要吵到明天。", "快判啊！",
+  "压力来到了 VAR 这边", "全场都在等", "别看回放了！",
+  "这还用看？", "我要上热搜了", "时间！时间！"
+];
+
+// ---------- 游戏状态 ----------
+const state = {
+  round: 0,
+  correct: 0,
+  pressure: 0,
+  controversy: 0,
+  timeLeft: 8,
+  answered: false,
+  progress: 1,   // 当前动画进度（用于重绘）
+  animRAF: null,
+  timerId: null,
+  dmkId: null
+};
+
+// ---------- DOM ----------
+const $ = id => document.getElementById(id);
+const canvas = $("pitch");
+const ctx = canvas.getContext("2d");
+const W = canvas.width, H = canvas.height;
+
+// ---------- 工具函数 ----------
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+// 缓动：先慢后快再缓
+const ease = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+/* =========================================================
+   绘制：球场 + 场景元素
+   ========================================================= */
+function drawPitch() {
+  // 草地底色 + 修剪条纹
+  ctx.fillStyle = "#2d8a3e";
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "rgba(255,255,255,.04)";
+  for (let i = 0; i < 10; i++) {
+    if (i % 2 === 0) ctx.fillRect(i * 64, 0, 64, H);
+  }
+
+  ctx.strokeStyle = "rgba(255,255,255,.85)";
+  ctx.lineWidth = 2;
+  const m = 18;
+  // 边界
+  ctx.strokeRect(m, m, W - m * 2, H - m * 2);
+  // 中线
+  ctx.beginPath();
+  ctx.moveTo(W / 2, m); ctx.lineTo(W / 2, H - m);
+  ctx.stroke();
+  // 中圈
+  ctx.beginPath(); ctx.arc(W / 2, H / 2, 48, 0, Math.PI * 2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(W / 2, H / 2, 3, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.fill();
+
+  // 右侧禁区
+  ctx.strokeRect(520, 70, W - m - 520, 330 - 70);
+  // 右侧小禁区
+  ctx.strokeRect(575, 135, W - m - 575, 265 - 135);
+  // 点球点
+  ctx.beginPath(); ctx.arc(560, 200, 3, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.fill();
+
+  // 球门（右侧）
+  ctx.strokeStyle = "#fff";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(W - m, 165); ctx.lineTo(W - m + 10, 165);
+  ctx.lineTo(W - m + 10, 235); ctx.lineTo(W - m, 235);
+  ctx.stroke();
+  // 球门网纹
+  ctx.strokeStyle = "rgba(255,255,255,.25)";
+  ctx.lineWidth = 1;
+  for (let y = 168; y <= 232; y += 8) {
+    ctx.beginPath(); ctx.moveTo(W - m, y); ctx.lineTo(W - m + 10, y); ctx.stroke();
+  }
+  ctx.lineWidth = 2;
+}
+
+// 绘制一名球员
+function drawPlayer(x, y, color, label) {
+  ctx.beginPath();
+  ctx.arc(x, y + 1, 9, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(0,0,0,.25)";
+  ctx.fill(); // 阴影
+  ctx.beginPath();
+  ctx.arc(x, y, 9, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "rgba(255,255,255,.9)";
+  ctx.stroke();
+  if (label) {
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 9px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(label, x, y + 1);
+  }
+}
+
+const COLORS = { att: "#ff5252", def: "#3aa0ff", gk: "#ffc83a" };
+
+// 绘制完整场景
+function drawScene(ev, p) {
+  const sc = ev.scene;
+  drawPitch();
+
+  // 越位线
+  if (sc.offsideLine != null) {
+    ctx.save();
+    ctx.strokeStyle = "rgba(255,77,94,.9)";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 6]);
+    ctx.beginPath();
+    ctx.moveTo(sc.offsideLine, 18);
+    ctx.lineTo(sc.offsideLine, H - 18);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "rgba(255,77,94,.9)";
+    ctx.font = "bold 11px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("越位线", sc.offsideLine, 12);
+    ctx.restore();
+  }
+
+  // 静态球员
+  sc.players.forEach(pl => {
+    let x = pl.x, y = pl.y;
+    // 滑铲球员：随进度移动到 slideTo
+    if (pl.slideTo) {
+      const t = clamp((p - 0.2) / 0.4, 0, 1);
+      x = lerp(pl.x, pl.slideTo.x, t);
+      y = lerp(pl.y, pl.slideTo.y, t);
+    }
+    drawPlayer(x, y, COLORS[pl.type], pl.type === "gk" ? "G" : "");
+  });
+
+  // 进攻球员跑动轨迹（虚线）
+  const ep = ease(p);
+  const ax = lerp(sc.attacker.x1, sc.attacker.x2, ep);
+  const ay = lerp(sc.attacker.y1, sc.attacker.y2, ep);
+  ctx.save();
+  ctx.strokeStyle = "rgba(255,82,82,.55)";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5, 5]);
+  ctx.beginPath();
+  ctx.moveTo(sc.attacker.x1, sc.attacker.y1);
+  ctx.lineTo(ax, ay);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  // 跑动方向箭头
+  if (p > 0.15) {
+    const dx = sc.attacker.x2 - sc.attacker.x1, dy = sc.attacker.y2 - sc.attacker.y1;
+    const ang = Math.atan2(dy, dx);
+    ctx.translate(ax, ay); ctx.rotate(ang);
+    ctx.fillStyle = "rgba(255,82,82,.7)";
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-7, -4); ctx.lineTo(-7, 4); ctx.closePath(); ctx.fill();
+    ctx.rotate(-ang); ctx.translate(-ax, -ay);
+  }
+  ctx.restore();
+
+  // 传球 / 射门路线（虚线）
+  const bx = lerp(sc.ball.x1, sc.ball.x2, ep);
+  const by = lerp(sc.ball.y1, sc.ball.y2, ep);
+  ctx.save();
+  ctx.strokeStyle = "rgba(255,255,255,.7)";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([4, 6]);
+  ctx.beginPath();
+  ctx.moveTo(sc.ball.x1, sc.ball.y1);
+  ctx.lineTo(bx, by);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // 碰撞 / 冲击效果
+  if (sc.collision && p >= sc.collision.at) {
+    const c = sc.collision;
+    const cp = clamp((p - c.at) / 0.4, 0, 1);
+    drawCollision(c.x, c.y, cp, c.kind);
+  }
+
+  // 高亮区域（手臂 / 肩膀 / 推手）
+  if (sc.highlight && p > 0.45) {
+    const h = sc.highlight;
+    ctx.save();
+    const pulse = 0.5 + 0.5 * Math.sin(Date.now() / 200);
+    ctx.strokeStyle = `rgba(255,206,58,${0.6 + 0.4 * pulse})`;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(h.x, h.y, 16, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(h.x, h.y, 11, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = "rgba(255,206,58,.18)";
+    ctx.beginPath(); ctx.arc(h.x, h.y, 16, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#ffce3a";
+    ctx.font = "bold 10px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(h.label, h.x, h.y - 22);
+    ctx.restore();
+  }
+
+  // 足球（最上层）
+  ctx.beginPath();
+  ctx.arc(bx, by + 1, 5, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(0,0,0,.3)"; ctx.fill();
+  ctx.beginPath();
+  ctx.arc(bx, by, 5, 0, Math.PI * 2);
+  ctx.fillStyle = "#fff"; ctx.fill();
+  ctx.lineWidth = 1; ctx.strokeStyle = "#222"; ctx.stroke();
+
+  // 主进攻球员（最上层）
+  drawPlayer(ax, ay, COLORS.att, "");
+}
+
+// 碰撞 / 冲击绘制
+function drawCollision(x, y, p, kind) {
+  ctx.save();
+  if (kind === "clean") {
+    // 干净铲球：绿色对勾示意
+    ctx.strokeStyle = "rgba(54,208,122,.9)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x - 8, y); ctx.lineTo(x - 2, y + 6); ctx.lineTo(x + 9, y - 7);
+    ctx.stroke();
+  } else {
+    // 犯规 / 推人：冲击星芒
+    const r = 10 + p * 12;
+    ctx.strokeStyle = kind === "push" ? "rgba(255,77,94,.9)" : "rgba(255,77,94,.95)";
+    ctx.lineWidth = 2.5;
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2 + p;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
+      ctx.stroke();
+    }
+    ctx.fillStyle = "rgba(255,77,94,.25)";
+    ctx.beginPath(); ctx.arc(x, y, r * 0.6, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+/* =========================================================
+   动画与回合控制
+   ========================================================= */
+function startRound() {
+  const ev = events[state.round];
+  state.answered = false;
+  state.timeLeft = 8;
+  state.progress = 0;
+
+  // 顶部信息
+  $("roundPill").textContent = `第 ${state.round + 1} / 10 回合`;
+  $("evTitle").textContent = ev.title;
+  $("evText").textContent = ev.description;
+
+  // 重置按钮与反馈
+  document.querySelectorAll(".choice").forEach(b => {
+    b.disabled = false;
+    b.classList.remove("correct-pick", "wrong-pick");
+  });
+  $("feedback").classList.remove("show");
+  $("feedback").innerHTML = "";
+
+  updateTimerUI();
+  updateStatsUI();
+
+  // 启动动画
+  let start = null;
+  const DURATION = 2400;
+  cancelAnimationFrame(state.animRAF);
+  const step = ts => {
+    if (start === null) start = ts;
+    let p = Math.min((ts - start) / DURATION, 1);
+    state.progress = p;
+    drawScene(ev, p);
+    if (p < 1) {
+      state.animRAF = requestAnimationFrame(step);
+    } else {
+      // 动画结束后保持轻微脉动（高亮元素）——用低频重绘
+      state.animRAF = requestAnimationFrame(idleStep);
+    }
+  };
+  const idleStep = () => {
+    drawScene(ev, 1);
+    if (!state.answered) state.animRAF = requestAnimationFrame(idleStep);
+  };
+  state.animRAF = requestAnimationFrame(step);
+
+  // 倒计时
+  clearInterval(state.timerId);
+  state.timerId = setInterval(tick, 100);
+
+  // 弹幕
+  clearInterval(state.dmkId);
+  state.dmkId = setInterval(() => {
+    if (!state.answered) spawnDanmaku(danmakuPool[Math.floor(Math.random() * danmakuPool.length)]);
+  }, 1100);
+}
+
+function tick() {
+  if (state.answered) return;
+  state.timeLeft -= 0.1;
+  if (state.timeLeft <= 0) {
+    state.timeLeft = 0;
+    updateTimerUI();
+    handleTimeout();
+    return;
+  }
+  updateTimerUI();
+}
+
+function updateTimerUI() {
+  const t = $("timer");
+  t.textContent = state.timeLeft.toFixed(1);
+  if (state.timeLeft <= 3) t.classList.add("warn");
+  else t.classList.remove("warn");
+}
+
+function updateStatsUI() {
+  $("stCorrect").textContent = state.correct;
+  // 准确率：按已作答回合计算
+  const answered = state.answered ? state.round + 1 : state.round;
+  const acc = answered > 0 ? Math.round((state.correct / answered) * 100) : 0;
+  $("stAcc").textContent = acc + "%";
+  $("stPress").textContent = state.pressure;
+  $("stCont").textContent = state.controversy;
+  $("pressBar").style.width = state.pressure + "%";
+  $("contBar").style.width = state.controversy + "%";
+}
+
+/* =========================================================
+   判罚处理
+   ========================================================= */
+function handleAnswer(choice) {
+  if (state.answered) return;
+  state.answered = true;
+  clearInterval(state.timerId);
+  clearInterval(state.dmkId);
+  cancelAnimationFrame(state.animRAF);
+
+  const ev = events[state.round];
+  const isRight = choice === ev.correctAnswer;
+
+  // 高亮玩家选择
+  document.querySelectorAll(".choice").forEach(b => {
+    b.disabled = true;
+    if (b.dataset.choice === ev.correctAnswer) b.classList.add("correct-pick");
+    if (b.dataset.choice === choice && !isRight) b.classList.add("wrong-pick");
+  });
+
+  // 数值更新
+  if (isRight) {
+    state.correct++;
+    state.pressure = clamp(state.pressure - 8, 0, 100);
+    state.controversy = clamp(state.controversy + ev.controversyImpact, 0, 100);
+  } else {
+    state.pressure = clamp(state.pressure + 15, 0, 100);
+    state.controversy = clamp(state.controversy + 15, 0, 100);
+  }
+  updateStatsUI();
+
+  // 闪烁效果
+  flash(isRight ? "green" : "red");
+
+  // 弹幕反应
+  spawnDanmaku(ev.crowdReaction.split("：")[1] || ev.crowdReaction);
+
+  showFeedback(isRight, ev, false);
+}
+
+function handleTimeout() {
+  state.answered = true;
+  clearInterval(state.timerId);
+  clearInterval(state.dmkId);
+  cancelAnimationFrame(state.animRAF);
+
+  const ev = events[state.round];
+  // 超时算错误，压力与争议明显上升
+  state.pressure = clamp(state.pressure + 20, 0, 100);
+  state.controversy = clamp(state.controversy + 20, 0, 100);
+
+  document.querySelectorAll(".choice").forEach(b => {
+    b.disabled = true;
+    if (b.dataset.choice === ev.correctAnswer) b.classList.add("correct-pick");
+  });
+
+  updateStatsUI();
+  flash("red");
+  spawnDanmaku("时间到了！判罚超时！");
+  showFeedback(false, ev, true);
+}
+
+function flash(color) {
+  const f = $("flash");
+  f.classList.remove("green", "red");
+  // 触发重绘动画
+  void f.offsetWidth;
+  f.classList.add(color);
+}
+
+function showFeedback(isRight, ev, isTimeout) {
+  const fb = $("feedback");
+  const verdict = isTimeout
+    ? "⏱ 超时未判罚 — 算作错误"
+    : (isRight ? "✅ 判罚正确" : "❌ 判罚错误");
+  const verdictClass = isRight ? "ok" : "no";
+
+  const correctAns = ev.correctAnswer;
+  const nextLabel = state.round >= events.length - 1 ? "查看最终结果" : "下一回合";
+
+  fb.innerHTML = `
+    <div class="fb-verdict ${verdictClass}">${verdict}</div>
+    <div class="fb-block"><span class="lbl">正确答案：</span>${correctAns}</div>
+    <div class="fb-block"><span class="lbl">规则解释：</span>${ev.explanation}</div>
+    <div class="fb-block"><span class="lbl">球迷反应：</span>${ev.crowdReaction}</div>
+    <div class="fb-block"><span class="lbl">教练反应：</span>${ev.coachReaction}</div>
+    <div class="fb-block"><span class="lbl">媒体标题：</span>${ev.mediaHeadline}</div>
+    <button class="next-btn" id="nextBtn">${nextLabel}</button>
+  `;
+  fb.classList.add("show");
+  $("nextBtn").addEventListener("click", nextRound);
+}
+
+function nextRound() {
+  state.round++;
+  if (state.round >= events.length) {
+    showEnd();
+  } else {
+    startRound();
+  }
+}
+
+/* =========================================================
+   弹幕
+   ========================================================= */
+function spawnDanmaku(text) {
+  const layer = $("danmaku");
+  const span = document.createElement("span");
+  span.textContent = text;
+  const top = 8 + Math.random() * 70; // 百分比
+  span.style.top = top + "%";
+  const dur = 5 + Math.random() * 3;
+  span.style.animationDuration = dur + "s";
+  layer.appendChild(span);
+  setTimeout(() => span.remove(), dur * 1000 + 200);
+}
+
+/* =========================================================
+   结束页
+   ========================================================= */
+function showEnd() {
+  $("gameScreen").hidden = true;
+  $("endScreen").hidden = false;
+
+  const c = state.correct;
+  const acc = Math.round((c / events.length) * 100);
+  let rating, summary;
+  if (c >= 9) {
+    rating = "世界级 VAR 裁判";
+    summary = "VAR 房间为你预留了 C 位，解说员都准备给你鼓掌了。";
+  } else if (c >= 7) {
+    rating = "可靠的裁判";
+    summary = "稳如老狗，教练组偷偷记下了你的名字。";
+  } else if (c >= 5) {
+    rating = "争议制造机";
+    summary = "赛后热搜第一：\"又是这个裁判\"，建议今晚关闭手机。";
+  } else if (c >= 3) {
+    rating = "赛后道歉声明预备役";
+    summary = "道歉声明草稿已为你生成三版，记得挑一个真诚的。";
+  } else {
+    rating = "建议远离 VAR 房间";
+    summary = "请离 VAR 房间远一点，越远越好，谢谢配合。";
+  }
+
+  $("endRating").textContent = rating;
+  $("endSummary").textContent = summary;
+  $("endCorrect").textContent = c;
+  $("endAcc").textContent = acc + "%";
+  $("endPress").textContent = state.pressure;
+  $("endCont").textContent = state.controversy;
+}
+
+/* =========================================================
+   启动 / 重启
+   ========================================================= */
+function startGame() {
+  state.round = 0;
+  state.correct = 0;
+  state.pressure = 0;
+  state.controversy = 0;
+  $("startScreen").hidden = true;
+  $("endScreen").hidden = true;
+  $("gameScreen").hidden = false;
+  startRound();
+}
+
+// 事件绑定
+$("startBtn").addEventListener("click", startGame);
+$("restartBtn").addEventListener("click", startGame);
+document.querySelectorAll(".choice").forEach(b => {
+  b.addEventListener("click", () => handleAnswer(b.dataset.choice));
+});
+
+// 首次绘制一个静态预览球场（开始页背景一致感）
+drawPitch();
+</script>
+</body>
+</html>
