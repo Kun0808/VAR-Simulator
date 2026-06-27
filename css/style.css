@@ -75,6 +75,40 @@ html, body {
 .intro-card .row { display: flex; gap: 10px; align-items: flex-start; }
 .intro-card .row span:first-child { color: var(--accent-2); font-weight: 700; min-width: 22px; }
 
+/* ===== 本地排行榜 ===== */
+.leaderboard {
+  margin: 18px auto 0;
+  max-width: 480px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 18px;
+  text-align: left;
+}
+.leaderboard h3 {
+  font-size: 13px;
+  color: var(--accent);
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+.leaderboard-empty { color: var(--muted); font-size: 13px; text-align: center; padding: 8px 0; }
+.lb-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  font-size: 13px;
+}
+.lb-item:last-child { border-bottom: none; }
+.lb-item .rank { color: var(--muted); width: 24px; font-weight: 700; }
+.lb-item .rank.gold { color: #ffd700; }
+.lb-item .rank.silver { color: #c0c0c0; }
+.lb-item .rank.bronze { color: #cd7f32; }
+.lb-item .lb-rating { color: var(--text); flex: 1; margin: 0 8px; }
+.lb-item .lb-score { color: var(--accent-2); font-family: "SF Mono", monospace; font-weight: 700; }
+.lb-item .lb-date { color: var(--muted); font-size: 11px; }
+
 /* ===== 按钮 ===== */
 .btn-primary {
   margin-top: 26px;
@@ -144,6 +178,21 @@ html, body {
 .timer.warn { background: rgba(255,77,94,.15); color: var(--danger); border-color: rgba(255,77,94,.4); animation: blink .5s steps(2) infinite; }
 @keyframes blink { 50% { opacity: .45; } }
 
+/* ===== 连击徽章 ===== */
+.streak-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 12px;
+  vertical-align: middle;
+  animation: fade .3s ease;
+}
+.streak-badge.hot { background: rgba(255,206,58,.2); color: var(--accent); border: 1px solid rgba(255,206,58,.4); }
+.streak-badge.god { background: linear-gradient(135deg, rgba(255,215,0,.25), rgba(255,165,0,.25)); color: #ffd700; border: 1px solid rgba(255,215,0,.5); }
+.streak-badge.cold { background: rgba(255,77,94,.2); color: var(--danger); border: 1px solid rgba(255,77,94,.4); }
+
 /* ===== VAR 监视器 ===== */
 .monitor {
   position: relative;
@@ -152,6 +201,27 @@ html, body {
   border-radius: 14px;
   overflow: hidden;
   box-shadow: 0 12px 30px rgba(0,0,0,.4);
+  transition: border-color .3s, box-shadow .3s;
+}
+/* VAR 之神金色边框 */
+.monitor.god-mode {
+  border-color: rgba(255,215,0,.6);
+  box-shadow: 0 0 24px rgba(255,215,0,.25), 0 12px 30px rgba(0,0,0,.4);
+}
+/* 高压红色警告 */
+.monitor.high-pressure::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  pointer-events: none;
+  box-shadow: inset 0 0 40px 10px rgba(255,30,50,.35);
+  animation: pulse-warn 1.2s ease-in-out infinite;
+  z-index: 5;
+}
+@keyframes pulse-warn {
+  0%, 100% { opacity: .5; }
+  50% { opacity: 1; }
 }
 .monitor-bar {
   display: flex;
@@ -171,15 +241,49 @@ canvas#pitch { display: block; width: 100%; height: auto; background: #2d8a3e; }
   position: absolute; inset: 0;
   background: transparent; pointer-events: none;
   transition: background .12s;
+  z-index: 6;
 }
 .flash.green { background: rgba(54,208,122,.32); animation: flashout .6s ease forwards; }
 .flash.red { background: rgba(255,77,94,.34); animation: flashout .6s ease forwards; }
 @keyframes flashout { 0%{opacity:1;} 100%{opacity:0;} }
 
+/* 压力爆炸过场 */
+.flash.blackout {
+  background: #000;
+  animation: blackout-fx 2.5s ease forwards;
+  z-index: 10;
+}
+@keyframes blackout-fx {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.blackout-text {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 11;
+  text-align: center;
+  color: var(--danger);
+  font-size: 18px;
+  font-weight: 800;
+  opacity: 0;
+  animation: bo-text 2.5s ease forwards;
+  pointer-events: none;
+  text-shadow: 0 2px 8px rgba(0,0,0,.8);
+}
+@keyframes bo-text {
+  0%, 15% { opacity: 0; }
+  30%, 75% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 /* 弹幕层 */
 .danmaku {
   position: absolute; inset: 0;
   overflow: hidden; pointer-events: none;
+  z-index: 4;
 }
 .danmaku span {
   position: absolute;
@@ -191,6 +295,7 @@ canvas#pitch { display: block; width: 100%; height: auto; background: #2d8a3e; }
   right: -40%;
   animation: dmk linear forwards;
 }
+.danmaku span.high { color: #ff9999; font-weight: 700; }
 @keyframes dmk { from { transform: translateX(0); } to { transform: translateX(-150vw); } }
 
 .legend {
@@ -256,6 +361,18 @@ canvas#pitch { display: block; width: 100%; height: auto; background: #2d8a3e; }
 .fb-verdict.no { color: var(--danger); }
 .fb-block { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
 .fb-block .lbl { color: var(--accent); font-weight: 700; margin-right: 4px; }
+/* 边裁内心戏特殊样式 */
+.fb-linesman {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: rgba(58,160,255,.08);
+  border-left: 3px solid var(--defender);
+  border-radius: 6px;
+  font-size: 12.5px;
+  color: #9bb8e0;
+  font-style: italic;
+}
+.fb-linesman .lbl { color: var(--defender); font-weight: 700; font-style: normal; margin-right: 4px; }
 .next-btn {
   margin-top: 14px;
   width: 100%;
@@ -288,6 +405,7 @@ canvas#pitch { display: block; width: 100%; height: auto; background: #2d8a3e; }
 .stat .num { font-size: 19px; font-weight: 800; font-family: "SF Mono", monospace; }
 .stat .lab { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
 .stat.press .num { color: var(--danger); }
+.stat.press.danger .num { animation: blink .5s steps(2) infinite; }
 .stat.cont .num { color: var(--accent); }
 .stat.right .num { color: var(--accent-2); }
 .stat.acc .num { color: var(--defender); }
@@ -314,6 +432,67 @@ canvas#pitch { display: block; width: 100%; height: auto; background: #2d8a3e; }
 }
 .end-card .v { font-size: 28px; font-weight: 800; font-family: "SF Mono", monospace; }
 .end-card .k { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+/* ===== 赛后发布会 ===== */
+#pressScreen { text-align: center; padding: 20px 6px; }
+.press-header {
+  font-size: 13px; letter-spacing: 2px; color: var(--accent);
+  margin-bottom: 6px;
+}
+.press-title { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+.press-sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+.press-card {
+  max-width: 500px;
+  margin: 0 auto 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px;
+  text-align: left;
+  animation: fade .35s ease;
+}
+.press-reporter { font-size: 12px; color: var(--accent); font-weight: 700; margin-bottom: 6px; }
+.press-question { font-size: 15px; line-height: 1.6; color: var(--text); margin-bottom: 14px; }
+.press-answers { display: flex; flex-direction: column; gap: 8px; }
+.press-answer {
+  padding: 12px 14px;
+  font-size: 14px;
+  text-align: left;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--text);
+  transition: transform .12s, border-color .12s, background .12s;
+}
+.press-answer:active { transform: scale(.98); }
+.press-answer:hover { border-color: var(--accent); background: #263150; }
+.press-answer.picked { border-color: var(--accent-2); background: rgba(54,208,122,.12); }
+.press-answer .tag { display: inline-block; margin-left: 6px; font-size: 11px; color: var(--muted); }
+.press-opinion-bar {
+  max-width: 500px;
+  margin: 16px auto 0;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--line);
+  overflow: hidden;
+}
+.press-opinion-bar > i {
+  display: block; height: 100%;
+  background: linear-gradient(90deg, var(--danger), var(--accent), var(--accent-2));
+  width: 50%;
+  transition: width .6s ease;
+}
+.press-opinion-label { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.press-final-verdict {
+  max-width: 500px; margin: 20px auto 0;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  padding: 20px; text-align: center;
+  display: none;
+}
+.press-final-verdict.show { display: block; animation: fade .4s ease; }
+.press-final-verdict .pfv-rating { font-size: 22px; font-weight: 800; color: var(--accent); margin-bottom: 8px; }
+.press-final-verdict .pfv-text { font-size: 14px; line-height: 1.7; color: #c4ccdf; }
 
 @media (max-width: 380px) {
   .title-main { font-size: 28px; }

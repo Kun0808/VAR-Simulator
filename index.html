@@ -16,11 +16,13 @@
     <p class="title-sub">你 不是 球员，你是 拍板的那个人</p>
     <div class="intro-card">
       <div class="row"><span>▸</span><span>共 <b>10 个回合</b>，每回合一个足球争议画面。</span></div>
-      <div class="row"><span>▸</span><span>你有 <b>8 秒</b>做出判罚，超时算错。</span></div>
+      <div class="row"><span>▸</span><span>你有 <b>15 秒</b>做出判罚，超时算错。</span></div>
       <div class="row"><span>▸</span><span>四个选项：<b>进球有效 / 越位 / 犯规 / 手球</b>。</span></div>
       <div class="row"><span>▸</span><span>盯紧你的 <b>压力值</b> 和 <b>争议值</b>，别被热搜淹没。</span></div>
-      <div class="row"><span>▸</span><span>看完回放、读完规则，再按下那个决定命运的按钮。</span></div>
+      <div class="row"><span>▸</span><span>连对有奖励，连错有惩罚，压力爆表会被请出房间。</span></div>
     </div>
+    <!-- 本地排行榜 -->
+    <div class="leaderboard" id="leaderboard"></div>
     <button class="btn-primary" id="startBtn">进入 VAR 房间</button>
   </section>
 
@@ -29,7 +31,7 @@
     <div class="topbar">
       <span class="brand">VAR · 裁判压力室</span>
       <span class="round-pill" id="roundPill">第 1 / 10 回合</span>
-      <span class="timer" id="timer">8.0</span>
+      <span class="timer" id="timer">15.0</span>
     </div>
 
     <div class="monitor">
@@ -83,7 +85,18 @@
       <div class="end-card"><div class="v" id="endPress" style="color:var(--danger)">0</div><div class="k">最终压力值</div></div>
       <div class="end-card"><div class="v" id="endCont" style="color:var(--accent)">0</div><div class="k">最终争议值</div></div>
     </div>
-    <button class="btn-primary" id="restartBtn" style="margin-top:28px;">再来一局</button>
+    <button class="btn-primary" id="pressBtn" style="margin-top:20px;background:linear-gradient(135deg,var(--accent),#f0a800);box-shadow:0 10px 26px rgba(255,206,58,.3);">进入赛后发布会</button>
+    <button class="btn-ghost" id="restartBtn" style="margin-top:12px;">再来一局</button>
+  </section>
+
+  <!-- ===== 赛后发布会页 ===== -->
+  <section id="pressScreen" class="screen" hidden>
+    <div class="press-header">POST-MATCH PRESS CONFERENCE</div>
+    <h2 class="press-title">赛后新闻发布会</h2>
+    <p class="press-sub">记者们已经就座，话筒怼到了你脸上</p>
+    <div class="press-card" id="pressCard"></div>
+    <div class="press-final-verdict" id="pressFinalVerdict"></div>
+    <button class="btn-primary" id="pressRestartBtn" style="display:none;margin-top:20px;">再来一局</button>
   </section>
 
 </div>
