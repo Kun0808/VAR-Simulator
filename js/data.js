@@ -231,6 +231,114 @@ const events = [
         { type: "gk", x: 612, y: 200 }
       ]
     }
+  },
+  {
+    id: 11,
+    title: "门将出击过了头",
+    description: "门将冲出禁区想要拦截直塞球，但在禁区线外用手将球抱住。进攻球员集体举手示意手球。",
+    correctAnswer: "手球",
+    explanation: "守门员仅在自己禁区内享有手球特权。禁区外用手触球属手球犯规，判直接任意球。",
+    crowdReaction: "球迷：\"门将以为禁区是整个中场吗？\"",
+    coachReaction: "进攻方教练跳脚：\"他抱着球跑出禁区了都！\"",
+    mediaHeadline: "《门将的禁区，不是整个球场》",
+    linesmanThought: "边裁内心：\"我数了步数，他确实跑出去了三步，但数步数不是我的工作。\"",
+    controversyImpact: 5,
+    scene: {
+      ball: { x1: 300, y1: 200, x2: 470, y2: 200 },
+      attacker: { x1: 300, y1: 205, x2: 440, y2: 205 },
+      players: [
+        { type: "gk", x: 475, y: 200 },
+        { type: "def", x: 430, y: 240 },
+        { type: "def", x: 380, y: 260 }
+      ]
+    }
+  },
+  {
+    id: 12,
+    title: "挡视线的影子",
+    description: "一名进攻球员站在越位位置，虽然没有触球，但正好挡住了门将视线。队友从远处射门得分。",
+    correctAnswer: "越位",
+    explanation: "处于越位位置的球员即使不触球，若遮挡门将视线、干扰门将扑救，即构成越位犯规，进球无效。",
+    crowdReaction: "球迷：\"他没碰球啊！怎么也越位？\"懂球帝：\"这叫干扰！\"",
+    coachReaction: "防守方教练：\"他站在那儿跟柱子一样，门将怎么看球？\"",
+    mediaHeadline: "《不碰球也能越位，规则就是这么细》",
+    linesmanThought: "边裁内心：\"这个我真举旗了，但他没碰球我也有点虚，好在 VAR 看清了。\"",
+    controversyImpact: 9,
+    scene: {
+      offsideLine: 380,
+      ball: { x1: 280, y1: 230, x2: 612, y2: 198 },
+      attacker: { x1: 280, y1: 235, x2: 430, y2: 208 },
+      players: [
+        { type: "def", x: 380, y: 180 },
+        { type: "def", x: 380, y: 270 },
+        { type: "att", x: 560, y: 200 },
+        { type: "gk", x: 612, y: 200 }
+      ]
+    }
+  },
+  {
+    id: 13,
+    title: "影帝级表演",
+    description: "进攻球员突入禁区，在没有身体接触的情况下突然倒地，双手抱头痛苦翻滚。防守球员一脸茫然。",
+    correctAnswer: "犯规",
+    explanation: "无身体接触情况下假摔骗取点球属非体育行为（假摔），判犯规并可能出示黄牌，不判点球。",
+    crowdReaction: "球迷：\"这演技，奥斯卡欠他一座小金人！\"",
+    coachReaction: "防守方教练冷笑：\"建议他退役去演电影。\"",
+    mediaHeadline: "《禁区影帝，VAR 不买账》",
+    linesmanThought: "边裁内心：\"我看了三遍回放，连一根草都没碰到他，他是被空气绊倒的。\"",
+    controversyImpact: 6,
+    scene: {
+      collision: { x: 510, y: 215, at: 0.4, kind: "dive" },
+      ball: { x1: 380, y1: 198, x2: 505, y2: 202 },
+      attacker: { x1: 380, y1: 205, x2: 510, y2: 215 },
+      players: [
+        { type: "def", x: 540, y: 205 },
+        { type: "gk", x: 612, y: 200 }
+      ]
+    }
+  },
+  {
+    id: 14,
+    title: "压线还是过线",
+    description: "射门击中门柱后弹向球门线，防守球员奋力解围。球整体是否已经越过门线？全场屏息等待 VAR 判定。",
+    correctAnswer: "进球有效",
+    explanation: "门线技术判定球整体已完全越过球门线，进球有效。即使防守球员随后解围，进球依然成立。",
+    crowdReaction: "球迷：\"进了！没进？进了？我眼都花了！\"",
+    coachReaction: "防守方教练捂眼：\"我不敢看，告诉我结果就行。\"",
+    mediaHeadline: "《毫米级判定，门线技术说了算》",
+    linesmanThought: "边裁内心：\"这个我真看不清，球太快了，感谢门线技术替我背锅。\"",
+    controversyImpact: 4,
+    scene: {
+      highlight: { x: 620, y: 200, label: "门线" },
+      ball: { x1: 400, y1: 200, x2: 622, y2: 200 },
+      attacker: { x1: 395, y1: 205, x2: 430, y2: 205 },
+      players: [
+        { type: "def", x: 580, y: 205 },
+        { type: "gk", x: 612, y: 200 }
+      ]
+    }
+  },
+  {
+    id: 15,
+    title: "进球前的旧账",
+    description: "进球前几秒，进攻方球员在中场附近推搡防守球员，裁判未吹停比赛，随后进攻方完成破门。VAR 回溯检查。",
+    correctAnswer: "犯规",
+    explanation: "VAR 可回溯进球前的犯规。若进球前存在明显犯规（即使裁判当时未吹停），进球应被取消，判防守方任意球。",
+    crowdReaction: "球迷：\"这都追溯到上一回合了？VAR 管得真宽！\"",
+    coachReaction: "丢球方教练：\"早该吹了！这叫什么叫有利？\"",
+    mediaHeadline: "《进球无效，VAR 追到中场算旧账》",
+    linesmanThought: "边裁内心：\"那个推搡我看见了，但当时以为裁判会吹，结果他没吹，我也没敢举旗。\"",
+    controversyImpact: 7,
+    scene: {
+      collision: { x: 320, y: 250, at: 0.3, kind: "push" },
+      ball: { x1: 340, y1: 248, x2: 600, y2: 200 },
+      attacker: { x1: 340, y1: 255, x2: 590, y2: 200 },
+      players: [
+        { type: "def", x: 320, y: 245 },
+        { type: "def", x: 480, y: 200 },
+        { type: "gk", x: 612, y: 200 }
+      ]
+    }
   }
 ];
 
@@ -274,7 +382,7 @@ const pressQuestions = [
     ]
   },
   {
-    when: (s) => s.correct >= 7,
+    when: (s) => s.correct >= 10,
     reporter: "《战术板》专栏作家",
     question: "您今天 {correct} 次判罚正确，是本赛季 VAR 表现最好的之一。有什么秘诀？",
     options: [
@@ -284,7 +392,7 @@ const pressQuestions = [
     ]
   },
   {
-    when: (s) => s.correct <= 4,
+    when: (s) => s.correct <= 6,
     reporter: "球迷代表（带了喇叭）",
     question: "{correct} 个对的……您是认真的吗？我奶奶……",
     options: [

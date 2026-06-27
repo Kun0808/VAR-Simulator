@@ -241,6 +241,21 @@ function drawCollision(x, y, p, kind) {
     ctx.beginPath();
     ctx.moveTo(x - 8, y); ctx.lineTo(x - 2, y + 6); ctx.lineTo(x + 9, y - 7);
     ctx.stroke();
+  } else if (kind === "dive") {
+    // 假摔：黄色问号 + "假摔"标记
+    const r = 8 + p * 6;
+    ctx.strokeStyle = "rgba(255,206,58,.9)";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = "rgba(255,206,58,.2)";
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#ffce3a";
+    ctx.font = "bold 14px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("?", x, y + 1);
+    ctx.font = "bold 9px sans-serif";
+    ctx.fillText("假摔", x, y - r - 6);
   } else {
     const r = 10 + p * 12;
     ctx.strokeStyle = kind === "push" ? "rgba(255,77,94,.9)" : "rgba(255,77,94,.95)";
@@ -343,7 +358,7 @@ function startRound() {
     state.timeLeft = ROUND_TIME + 2;
   }
 
-  $("roundPill").innerHTML = `第 ${state.round + 1} / 10 回合`;
+  $("roundPill").innerHTML = `第 ${state.round + 1} / ${events.length} 回合`;
   $("evTitle").textContent = ev.title;
   $("evText").textContent = ev.description;
 
@@ -572,10 +587,11 @@ function spawnDanmaku(text, high = false) {
    结束页
    ========================================================= */
 function getRating(c) {
-  if (c >= 9) return { rating: "世界级 VAR 裁判", summary: "VAR 房间为你预留了 C 位，解说员都准备给你鼓掌了。" };
-  if (c >= 7) return { rating: "可靠的裁判", summary: "稳如老狗，教练组偷偷记下了你的名字。" };
-  if (c >= 5) return { rating: "争议制造机", summary: "赛后热搜第一：\"又是这个裁判\"，建议今晚关闭手机。" };
-  if (c >= 3) return { rating: "赛后道歉声明预备役", summary: "道歉声明草稿已为你生成三版，记得挑一个真诚的。" };
+  const total = events.length;
+  if (c >= total - 2) return { rating: "世界级 VAR 裁判", summary: "VAR 房间为你预留了 C 位，解说员都准备给你鼓掌了。" };
+  if (c >= Math.floor(total * 0.67)) return { rating: "可靠的裁判", summary: "稳如老狗，教练组偷偷记下了你的名字。" };
+  if (c >= Math.floor(total * 0.47)) return { rating: "争议制造机", summary: "赛后热搜第一：\"又是这个裁判\"，建议今晚关闭手机。" };
+  if (c >= Math.floor(total * 0.27)) return { rating: "赛后道歉声明预备役", summary: "道歉声明草稿已为你生成三版，记得挑一个真诚的。" };
   return { rating: "建议远离 VAR 房间", summary: "请离 VAR 房间远一点，越远越好，谢谢配合。" };
 }
 
