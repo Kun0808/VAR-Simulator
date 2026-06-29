@@ -7,7 +7,10 @@
 // ---------- 倒计时时长（秒） ----------
 const ROUND_TIME = 15;
 
-// ---------- 回合数据（10 个） ----------
+// ---------- 每局抽取回合数 ----------
+const ROUNDS_PER_GAME = 15;
+
+// ---------- 题库（共 23 个，每局随机抽取 15 个并打乱顺序） ----------
 const events = [
   {
     id: 1,
@@ -336,6 +339,181 @@ const events = [
       players: [
         { type: "def", x: 320, y: 245 },
         { type: "def", x: 480, y: 200 },
+        { type: "gk", x: 612, y: 200 }
+      ]
+    }
+  },
+  {
+    id: 16,
+    title: "越位位置回撤接球",
+    description: "前锋在越位位置启动，接球后回撤到中场附近才完成射门。防守方投诉他启动时越位。",
+    correctAnswer: "越位",
+    explanation: "越位判定以队友传球瞬间为准。即使接球后回撤，只要传球瞬间处于越位位置并参与进攻，即构成越位犯规。",
+    crowdReaction: "球迷：\"他都跑回中场了还越位？规则不讲道理！\"懂球帝：\"讲的是传球那一瞬间。\"",
+    coachReaction: "防守方教练：\"管他跑到哪儿，启动那一下就越位了。\"",
+    mediaHeadline: "《回撤也救不了，越位定格在传球瞬间》",
+    linesmanThought: "边裁内心：\"他跑回来那段我差点以为我看错了，但传球那一刻我记得清清楚楚。\"",
+    controversyImpact: 7,
+    scene: {
+      offsideLine: 360,
+      ball: { x1: 260, y1: 250, x2: 400, y2: 230 },
+      attacker: { x1: 400, y1: 230, x2: 280, y2: 240 },
+      players: [
+        { type: "def", x: 360, y: 200 },
+        { type: "def", x: 360, y: 280 },
+        { type: "att", x: 250, y: 250 },
+        { type: "gk", x: 612, y: 200 }
+      ]
+    }
+  },
+  {
+    id: 17,
+    title: "贴身的手臂",
+    description: "射门打在防守球员紧贴身体的手臂上，防守方疯狂投诉手球。慢动作显示手臂完全没有离开躯干。",
+    correctAnswer: "进球有效",
+    explanation: "手臂紧贴身体、未扩大防守面积时，球打手不构成手球犯规。进球有效（若球随后进门）或比赛继续。",
+    crowdReaction: "球迷：\"这手都贴身上了还要点球？那以后别长手了！\"",
+    coachReaction: "防守方教练摊手：\"这要是手球，我以后让球员把手绑起来踢。\"",
+    mediaHeadline: "《贴身手臂清白，VAR 认定进球有效》",
+    linesmanThought: "边裁内心：\"这个我真看清了，手贴得比防寒服还紧，不怪他。\"",
+    controversyImpact: 6,
+    scene: {
+      highlight: { x: 545, y: 196, label: "贴身手臂" },
+      ball: { x1: 400, y1: 200, x2: 612, y2: 198 },
+      attacker: { x1: 395, y1: 205, x2: 430, y2: 205 },
+      players: [
+        { type: "def", x: 555, y: 205 },
+        { type: "gk", x: 612, y: 200 }
+      ]
+    }
+  },
+  {
+    id: 18,
+    title: "脱衣庆祝的代价",
+    description: "前锋破门后激动地脱掉球衣疯狂庆祝，裁判掏出黄牌。进攻方球迷担心进球会被吹掉。",
+    correctAnswer: "进球有效",
+    explanation: "脱衣庆祝违反体育道德，仅出示黄牌警告，不影响进球有效性。进球依然有效。",
+    crowdReaction: "球迷：\"脱个衣服而已，球都进了还能吹回来？\"",
+    coachReaction: "进攻方教练笑骂：\"进球归进球，黄牌归黄牌，下次穿紧点。\"",
+    mediaHeadline: "《脱衣有代价，但进球没泡汤》",
+    linesmanThought: "边裁内心：\"脱衣服我管不着，我只管越位，这球不越位，进就进了吧。\"",
+    controversyImpact: 3,
+    scene: {
+      ball: { x1: 380, y1: 198, x2: 612, y2: 198 },
+      attacker: { x1: 380, y1: 205, x2: 600, y2: 200 },
+      players: [
+        { type: "def", x: 500, y: 205 },
+        { type: "gk", x: 612, y: 200 }
+      ]
+    }
+  },
+  {
+    id: 19,
+    title: "门线上的手掌",
+    description: "必进球飞向空门，防守球员在门线内用手掌将球挡出。全场哗然，VAR 紧急介入。",
+    correctAnswer: "手球",
+    explanation: "防守球员（非守门员）在门线附近故意用手挡出必进球，判手球犯规并出示红牌，判罚点球。",
+    crowdReaction: "球迷：\"他把自己当排球选手了！\"",
+    coachReaction: "进攻方教练暴怒：\"红牌！点球！一样都不能少！\"",
+    mediaHeadline: "《门线排球式解围，红点套餐安排上》",
+    linesmanThought: "边裁内心：\"这个我站在门线旁边看得一清二楚，手掌都拍红了。\"",
+    controversyImpact: 5,
+    scene: {
+      highlight: { x: 618, y: 198, label: "门线手球" },
+      ball: { x1: 420, y1: 200, x2: 618, y2: 200 },
+      attacker: { x1: 415, y1: 205, x2: 450, y2: 205 },
+      players: [
+        { type: "def", x: 600, y: 205 },
+        { type: "gk", x: 580, y: 230 },
+        { type: "gk", x: 612, y: 200 }
+      ]
+    }
+  },
+  {
+    id: 20,
+    title: "解围失误消除越位",
+    description: "前锋站在越位位置，防守球员头球解围却顶到前锋脚下，前锋拿球破门。防守方投诉越位。",
+    correctAnswer: "进球有效",
+    explanation: "防守球员主动触球（解围）后，球落到越位位置球员脚下，属防守球员主动触球，不构成越位犯规，进球有效。",
+    crowdReaction: "球迷：\"这解围比前锋射门还精准！\"",
+    coachReaction: "防守方教练捂脸：\"我自己解围送的人家，怪不了 VAR。\"",
+    mediaHeadline: "《解围送礼，越位一笔勾销》",
+    linesmanThought: "边裁内心：\"越位是越位了，但那球是防守球员顶过去的，我举旗也没用啊。\"",
+    controversyImpact: 8,
+    scene: {
+      offsideLine: 400,
+      ball: { x1: 400, y1: 120, x2: 470, y2: 200 },
+      attacker: { x1: 470, y1: 200, x2: 590, y2: 200 },
+      players: [
+        { type: "def", x: 400, y: 205 },
+        { type: "def", x: 400, y: 270 },
+        { type: "att", x: 300, y: 250 },
+        { type: "gk", x: 612, y: 200 }
+      ]
+    }
+  },
+  {
+    id: 21,
+    title: "越位位置的受害者",
+    description: "前锋站在越位位置还没来得及参与进攻，就被防守球员从背后推倒。防守方却投诉越位。",
+    correctAnswer: "犯规",
+    explanation: "越位犯规需球员主动参与进攻（触球/干扰/获利）。若在参与前被防守球员犯规，则防守犯规在先，判防守方犯规。",
+    crowdReaction: "球迷：\"他还没碰球呢就被推倒了，这哪是越位？\"",
+    coachReaction: "进攻方教练：\"我家球员站在那儿就被推，天理何在！\"",
+    mediaHeadline: "《越位没等到，先等到一记推搡》",
+    linesmanThought: "边裁内心：\"他确实越位了，但还没碰球就被推了，这个球我倾向吹防守犯规。\"",
+    controversyImpact: 7,
+    scene: {
+      collision: { x: 450, y: 205, at: 0.4, kind: "push" },
+      offsideLine: 380,
+      ball: { x1: 280, y1: 230, x2: 350, y2: 210 },
+      attacker: { x1: 350, y1: 210, x2: 450, y2: 205 },
+      players: [
+        { type: "def", x: 380, y: 200 },
+        { type: "def", x: 470, y: 205 },
+        { type: "gk", x: 612, y: 200 }
+      ]
+    }
+  },
+  {
+    id: 22,
+    title: "回传给门将的陷阱",
+    description: "防守球员用脚故意回传给门将，门将俯身用双手将球抱起。进攻球员立即举手示意犯规。",
+    correctAnswer: "犯规",
+    explanation: "守门员不得用手接队友用脚的故意回传球，违者判间接任意球犯规。",
+    crowdReaction: "球迷：\"门将当自己是排球自由人吗？\"",
+    coachReaction: "进攻方教练：\"回传球不能用手！这是基本功！\"",
+    mediaHeadline: "《回传球用手抱，门将犯规没跑》",
+    linesmanThought: "边裁内心：\"回传球是不是故意的？这个……看着像是故意的吧，我倾向判了。\"",
+    controversyImpact: 5,
+    scene: {
+      ball: { x1: 500, y1: 205, x2: 612, y2: 200 },
+      attacker: { x1: 300, y1: 250, x2: 400, y2: 240 },
+      players: [
+        { type: "def", x: 500, y: 205 },
+        { type: "gk", x: 612, y: 200 }
+      ]
+    }
+  },
+  {
+    id: 23,
+    title: "越位线上的舞蹈",
+    description: "前锋站在越位线上反复横跳干扰防守球员，队友传球瞬间他刚好越过线。他没碰球，但防守球员被他晃得解围失误。",
+    correctAnswer: "越位",
+    explanation: "处于越位位置的球员即使不触球，若通过动作干扰防守球员（如晃动、阻挡），即构成越位犯规。",
+    crowdReaction: "球迷：\"他在那儿跳广场舞呢？防守球员都被晃晕了！\"",
+    coachReaction: "防守方教练：\"这不叫跑位，这叫干扰！吹了它！\"",
+    mediaHeadline: "《越位线上的舞者，干扰也是越位》",
+    linesmanThought: "边裁内心：\"他没碰球，但那舞跳得防守球员都眼花了，这个得吹。\"",
+    controversyImpact: 9,
+    scene: {
+      offsideLine: 400,
+      ball: { x1: 280, y1: 230, x2: 480, y2: 200 },
+      attacker: { x1: 280, y1: 235, x2: 410, y2: 205 },
+      players: [
+        { type: "def", x: 400, y: 200 },
+        { type: "def", x: 400, y: 270 },
+        { type: "att", x: 260, y: 235 },
         { type: "gk", x: 612, y: 200 }
       ]
     }

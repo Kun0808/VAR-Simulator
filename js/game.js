@@ -19,7 +19,8 @@ const state = {
   dmkId: null,
   opinion: 50,        // 发布会舆论分（0-100）
   pressIndex: 0,      // 发布会当前问题索引
-  blackoutLock: false // 压力爆炸过场锁
+  blackoutLock: false, // 压力爆炸过场锁
+  gameEvents: []      // 本局抽取的回合（打乱顺序）
 };
 
 // ---------- DOM ----------
@@ -32,6 +33,21 @@ const W = canvas.width, H = canvas.height;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 const ease = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+// Fisher-Yates 洗牌：打乱数组顺序
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// 从题库中随机抽取并打乱
+function pickRounds() {
+  return shuffle(events).slice(0, ROUNDS_PER_GAME);
+}
 
 const COLORS = { att: "#ff5252", def: "#3aa0ff", gk: "#ffc83a" };
 
@@ -348,7 +364,7 @@ function triggerBlackout(callback) {
    动画与回合控制
    ========================================================= */
 function startRound() {
-  const ev = events[state.round];
+  const ev = state.gameEvents[state.round];
   state.answered = false;
   state.timeLeft = ROUND_TIME;
   state.progress = 0;
@@ -358,7 +374,7 @@ function startRound() {
     state.timeLeft = ROUND_TIME + 2;
   }
 
-  $("roundPill").innerHTML = `第 ${state.round + 1} / ${events.length} 回合`;
+  $("roundPill").innerHTML = `第 ${state.round + 1} / ${state.gameEvents.length} 回合`;
   $("evTitle").textContent = ev.title;
   $("evText").textContent = ev.description;
 
@@ -450,7 +466,7 @@ function handleAnswer(choice) {
   clearInterval(state.dmkId);
   cancelAnimationFrame(state.animRAF);
 
-  const ev = events[state.round];
+  const ev = state.gameEvents[state.round];
   const isRight = choice === ev.correctAnswer;
 
   document.querySelectorAll(".choice").forEach(b => {
@@ -495,7 +511,8 @@ function handleTimeout() {
   clearInterval(state.dmkId);
   cancelAnimationFrame(state.animRAF);
 
-  const ev = events[state.round];
+  const ev = state.gameEvents[state.round];
+  // 超时算错误
   state.pressure = clamp(state.pressure + 20, 0, 100);
   state.controversy = clamp(state.controversy + 20, 0, 100);
   state.streak = 0;
@@ -535,7 +552,7 @@ function showFeedback(isRight, ev, isTimeout) {
   const verdictClass = isRight ? "ok" : "no";
 
   const correctAns = ev.correctAnswer;
-  const nextLabel = state.round >= events.length - 1 ? "查看最终结果" : "下一回合";
+  const nextLabel = state.round >= state.gameEvents.length - 1 ? "查看最终结果" : "下一回合";
 
   // 连击提示文字
   let streakNote = "";
@@ -560,7 +577,7 @@ function showFeedback(isRight, ev, isTimeout) {
 
 function nextRound() {
   state.round++;
-  if (state.round >= events.length) {
+  if (state.round >= state.gameEvents.length) {
     showEnd();
   } else {
     startRound();
@@ -587,7 +604,7 @@ function spawnDanmaku(text, high = false) {
    结束页
    ========================================================= */
 function getRating(c) {
-  const total = events.length;
+  const total = state.gameEvents.length;
   if (c >= total - 2) return { rating: "世界级 VAR 裁判", summary: "VAR 房间为你预留了 C 位，解说员都准备给你鼓掌了。" };
   if (c >= Math.floor(total * 0.67)) return { rating: "可靠的裁判", summary: "稳如老狗，教练组偷偷记下了你的名字。" };
   if (c >= Math.floor(total * 0.47)) return { rating: "争议制造机", summary: "赛后热搜第一：\"又是这个裁判\"，建议今晚关闭手机。" };
@@ -600,7 +617,7 @@ function showEnd() {
   $("endScreen").hidden = false;
 
   const c = state.correct;
-  const acc = Math.round((c / events.length) * 100);
+  const acc = Math.round((c / state.gameEvents.length) * 100);
   const { rating, summary } = getRating(c);
 
   // 保存到排行榜
@@ -735,6 +752,8 @@ function startGame() {
   state.opinion = 50;
   state.pressIndex = 0;
   state.blackoutLock = false;
+  // 每局从题库随机抽取并打乱顺序
+  state.gameEvents = pickRounds();
   $("startScreen").hidden = true;
   $("endScreen").hidden = true;
   $("pressScreen").hidden = true;
