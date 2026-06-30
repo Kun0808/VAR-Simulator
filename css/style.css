@@ -373,6 +373,8 @@ canvas#pitch { display: block; width: 100%; height: auto; background: #2d8a3e; }
   font-style: italic;
 }
 .fb-linesman .lbl { color: var(--defender); font-weight: 700; font-style: normal; margin-right: 4px; }
+.fb-source { margin-top: 8px; padding: 10px 12px; background: rgba(255,206,58,.08); border: 1px solid rgba(255,206,58,.2); border-radius: 8px; font-size: 13px; color: #e8d488; }
+.fb-source .lbl { color: var(--accent); font-weight: 700; margin-right: 4px; }
 .next-btn {
   margin-top: 14px;
   width: 100%;

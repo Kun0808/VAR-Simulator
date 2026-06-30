@@ -34,19 +34,54 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 const ease = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 
-// Fisher-Yates 洗牌：打乱数组顺序
+// 加密级随机数（若浏览器支持），比 Math.random 熵更高
+function secureRandom() {
+  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+    const a = new Uint32Array(1);
+    crypto.getRandomValues(a);
+    return a[0] / 4294967296;
+  }
+  return Math.random();
+}
+
+// Fisher-Yates 洗牌：使用加密级随机源打乱数组顺序
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(secureRandom() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
 }
 
-// 从题库中随机抽取并打乱
+// ---------- 防重复抽取机制 ----------
+// 记录上一局出现的题目 ID，下一局优先选择未出现的题目
+const RECENT_KEY = "var_sim_recent";
+
+function getRecentIds() {
+  try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch { return []; }
+}
+
+function saveRecentIds(ids) {
+  try { localStorage.setItem(RECENT_KEY, JSON.stringify(ids)); } catch {}
+}
+
+// 从题库中随机抽取并打乱，优先选择上局未出现的题目
 function pickRounds() {
-  return shuffle(events).slice(0, ROUNDS_PER_GAME);
+  const recent = getRecentIds();
+  const recentSet = new Set(recent);
+  // 将题库分为"上局未出现"和"上局出现过"两组
+  const fresh = events.filter(e => !recentSet.has(e.id));
+  const seen = events.filter(e => recentSet.has(e.id));
+  // 优先抽取未出现的题目，不足部分从已出现中补齐
+  const freshSh = shuffle(fresh);
+  const seenSh = shuffle(seen);
+  const picked = [...freshSh, ...seenSh].slice(0, ROUNDS_PER_GAME);
+  // 最终再打乱一次，确保顺序完全随机
+  const result = shuffle(picked);
+  // 记录本局出现的题目（随机保留 12 个，避免两局完美交替）
+  saveRecentIds(shuffle(result.map(e => e.id)).slice(0, 12));
+  return result;
 }
 
 const COLORS = { att: "#ff5252", def: "#3aa0ff", gk: "#ffc83a" };
@@ -560,8 +595,14 @@ function showFeedback(isRight, ev, isTimeout) {
   else if (isRight && state.streak === 5) streakNote = `<div class="fb-block"><span class="lbl">连击奖励：</span>VAR 之神！金色光环加身。</div>`;
   else if (!isRight && state.streakWrong === 3) streakNote = `<div class="fb-block"><span class="lbl">连击警告：</span>三连错！教练组正在围攻 VAR 房间。</div>`;
 
+  // 答对时显示比赛来源
+  const sourceLine = (isRight && matchSources[ev.id])
+    ? `<div class="fb-source"><span class="lbl">本题出自：</span>${matchSources[ev.id]}</div>`
+    : "";
+
   fb.innerHTML = `
     <div class="fb-verdict ${verdictClass}">${verdict}</div>
+    ${sourceLine}
     <div class="fb-block"><span class="lbl">正确答案：</span>${correctAns}</div>
     <div class="fb-block"><span class="lbl">规则解释：</span>${ev.explanation}</div>
     <div class="fb-block"><span class="lbl">球迷反应：</span>${ev.crowdReaction}</div>
